@@ -23,6 +23,7 @@ namespace Simple_Image_Resizer
         int totalCount = 0;
         int processedCount = 0;
 
+
         private void Form1_Load(object sender, EventArgs e)
         {
             cmbInputFormat.SelectedIndex = 0;
@@ -35,6 +36,12 @@ namespace Simple_Image_Resizer
             btnFolderSelect_Click(sender, e);
         }
 
+        private void txtFolder_TextChanged(object sender, EventArgs e)
+        {
+            cmbRate_TextChanged(sender, e);
+        }
+
+
         private void btnFolderSelect_Click(object sender, EventArgs e)
         {
             var result = folderBrowserDialog1.ShowDialog();
@@ -42,11 +49,47 @@ namespace Simple_Image_Resizer
             if (result == DialogResult.OK)
             {
                 txtFolder.Text = folderBrowserDialog1.SelectedPath;
-
-                totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
-                lblFileCount.Text = totalCount.ToString();
+                txtFolder_TextChanged(sender, e);
             }
         }
+
+        private void cmbRate_TextChanged(object sender, EventArgs e)
+        {
+            var dir = Directory.CreateDirectory(txtFolder.Text);
+            var files = dir.GetFiles(cmbInputFormat.Text);
+
+            //Update file count
+            totalCount = files.Count();
+            lblFileCount.Text = totalCount.ToString();
+
+            //Update rate label 
+            if (totalCount > 0)
+            {
+                var file = files.FirstOrDefault();
+
+                using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
+                {
+                    var rate = cmbRate.Text.ToDouble() / 100;
+
+                    int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
+                    int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("e.g.: First picture will be resized from ");
+                    sb.Append(originalImage.Width);
+                    sb.Append("x");
+                    sb.Append(originalImage.Height);
+                    sb.Append(" to ");
+                    sb.Append(newWidth);
+                    sb.Append("x");
+                    sb.Append(newHeight);
+
+                    lblRateExample.Text = sb.ToString();
+                }
+            }
+        }
+
+
 
         private void btnStart_Click(object sender, EventArgs e)
         {
@@ -83,12 +126,13 @@ namespace Simple_Image_Resizer
 
             var targetDir = Directory.CreateDirectory(args.Path + "\\Resized");
 
-            var rate = args.Rate.ToDouble() / 100;
+            
 
             foreach (var file in files)
             {
                 using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
                 {
+                    var rate = args.Rate.ToDouble() / 100;
                     int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
                     int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
                     
@@ -148,6 +192,8 @@ namespace Simple_Image_Resizer
             MessageBox.Show("This small open source software was created by João Carlos Pena on 2011-05-16.", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        
+       
 
 
     }

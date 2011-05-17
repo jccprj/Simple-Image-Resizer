@@ -143,6 +143,7 @@
             this.cmbRate.Size = new System.Drawing.Size(48, 21);
             this.cmbRate.TabIndex = 8;
             this.cmbRate.Text = "30";
+            this.cmbRate.TextChanged += new System.EventHandler(this.cmbRate_TextChanged);
             // 
             // label5
             // 
@@ -166,8 +167,8 @@
             // 
             this.backgroundWorker1.WorkerReportsProgress = true;
             this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
             // 
             // progressBar
             // 
@@ -218,6 +219,7 @@
             this.txtFolder.Name = "txtFolder";
             this.txtFolder.Size = new System.Drawing.Size(303, 20);
             this.txtFolder.TabIndex = 16;
+            this.txtFolder.TextChanged += new System.EventHandler(this.txtFolder_TextChanged);
             this.txtFolder.DoubleClick += new System.EventHandler(this.txtFolder_DoubleClick);
             // 
             // menuStrip1
@@ -233,7 +235,7 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
