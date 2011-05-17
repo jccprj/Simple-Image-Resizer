@@ -10,6 +10,7 @@ using System.IO;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using Simple_Image_Resizer.Extensions;
+using System.Threading.Tasks;
 
 namespace Simple_Image_Resizer
 {
@@ -22,6 +23,7 @@ namespace Simple_Image_Resizer
 
         int totalCount = 0;
         int processedCount = 0;
+        long startTimeTicks = 0;
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -91,10 +93,14 @@ namespace Simple_Image_Resizer
 
 
 
+
         private void btnStart_Click(object sender, EventArgs e)
         {
             try
             {
+
+                startTimeTicks = DateTime.Now.Ticks;
+
                 totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
                 if (totalCount == 0)
                     throw new Exception("The selected directory is empty.");
@@ -129,33 +135,44 @@ namespace Simple_Image_Resizer
 
             var targetDir = Directory.CreateDirectory(args.Path + "\\Resized");
 
-            
-
-            foreach (var file in files)
+            try
             {
-                using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
-                {
-                    var rate = args.Rate.ToDouble() / 100;
-                    int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
-                    int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
-                    
-                    using (Bitmap newImage = new Bitmap(newWidth, newHeight))
+                Parallel.ForEach<FileInfo>(files, (file, state) =>
                     {
-                        using (Graphics graphic = Graphics.FromImage((Image)newImage))
+
+                        if (state.ShouldExitCurrentIteration)
+                            return;
+
+                        using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
                         {
-                            graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            graphic.SmoothingMode = SmoothingMode.HighQuality;
-                            graphic.CompositingQuality = CompositingQuality.HighQuality;
+                            var rate = args.Rate.ToDouble() / 100;
+                            int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
+                            int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
 
-                            graphic.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+                            using (Bitmap newImage = new Bitmap(newWidth, newHeight))
+                            {
+                                using (Graphics graphic = Graphics.FromImage((Image)newImage))
+                                {
+                                    graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                                    graphic.SmoothingMode = SmoothingMode.HighQuality;
+                                    graphic.CompositingQuality = CompositingQuality.HighQuality;
 
-                            newImage.Save(targetDir.FullName + "\\" + file.Name, ImageFormat.Jpeg);
+                                    graphic.DrawImage(originalImage, 0, 0, newWidth, newHeight);
+
+                                    newImage.Save(targetDir.FullName + "\\" + file.Name, ImageFormat.Jpeg);
+                                }
+                            }
+
+                            backgroundWorker1.ReportProgress(0);
                         }
-                    }
+                    });
 
-                    backgroundWorker1.ReportProgress(0);
-                }
             }
+            catch (AggregateException ex)
+            {
+                throw ex.InnerExceptions.First();
+            }
+
         }
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -165,6 +182,7 @@ namespace Simple_Image_Resizer
             lblCount.Text = processedCount.ToString() + " / " + totalCount.ToString();
 
             updateProgressBar();
+
         }
 
 
@@ -178,7 +196,11 @@ namespace Simple_Image_Resizer
         {
             if (e.Error == null)
             {
-                MessageBox.Show("Finished!", "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                var ts = new TimeSpan(DateTime.Now.Ticks - startTimeTicks);
+
+
+                MessageBox.Show("Finished!\nProcessing time: " + ts.TotalSeconds, "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -193,8 +215,8 @@ namespace Simple_Image_Resizer
             MessageBox.Show(aboutText, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        
-       
+
+
 
 
     }
