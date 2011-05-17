@@ -96,6 +96,9 @@ namespace Simple_Image_Resizer
             try
             {
                 totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
+                if (totalCount == 0)
+                    throw new Exception("The selected directory is empty.");
+
                 processedCount = 0;
                 updateProgressBar();
 
@@ -136,8 +139,6 @@ namespace Simple_Image_Resizer
                     int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
                     int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
                     
-                    
-
                     using (Bitmap newImage = new Bitmap(newWidth, newHeight))
                     {
                         using (Graphics graphic = Graphics.FromImage((Image)newImage))
@@ -154,7 +155,6 @@ namespace Simple_Image_Resizer
 
                     backgroundWorker1.ReportProgress(0);
                 }
-
             }
         }
 
@@ -189,7 +189,8 @@ namespace Simple_Image_Resizer
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("This small open source software was created by João Carlos Pena on 2011-05-16.", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            string aboutText = "Copyright © 2011 João Carlos Pena, Arlindo Pereira.\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.";
+            MessageBox.Show(aboutText, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         
