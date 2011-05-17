@@ -53,6 +53,9 @@ namespace Simple_Image_Resizer
             try
             {
                 totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
+                if (totalCount == 0)
+                    throw new Exception("The selected directory is empty.");
+
                 processedCount = 0;
                 updateProgressBar();
 
@@ -92,8 +95,6 @@ namespace Simple_Image_Resizer
                     int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
                     int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
                     
-                    
-
                     using (Bitmap newImage = new Bitmap(newWidth, newHeight))
                     {
                         using (Graphics graphic = Graphics.FromImage((Image)newImage))
@@ -110,7 +111,6 @@ namespace Simple_Image_Resizer
 
                     backgroundWorker1.ReportProgress(0);
                 }
-
             }
         }
 
