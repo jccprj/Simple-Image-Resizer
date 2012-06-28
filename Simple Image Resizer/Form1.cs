@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Simple_Image_Resizer.Extensions;
 
 namespace Simple_Image_Resizer
 {
@@ -67,7 +66,7 @@ namespace Simple_Image_Resizer
 
                 using (Image originalImage = Image.FromFile(file.FullName))
                 {
-                    var rate = cmbRate.Text.ToDouble() / 100;
+                    var rate = double.Parse(cmbRate.Text) / 100d;
 
                     int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
                     int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
@@ -143,7 +142,7 @@ namespace Simple_Image_Resizer
 
                         using (Image originalImage = Image.FromFile(file.FullName))
                         {
-                            var rate = args.Rate.ToDouble() / 100;
+                            var rate = args.Rate / 100d;
                             int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
                             int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
 
@@ -186,7 +185,7 @@ namespace Simple_Image_Resizer
 
         private void updateProgressBar()
         {
-            progressBar.Value = (int)Math.Floor((processedCount.ToDouble() / totalCount.ToDouble()) * 100);
+            progressBar.Value = (int)Math.Floor(((double)processedCount / totalCount) * 100d);
         }
 
 
