@@ -44,9 +44,7 @@ namespace Simple_Image_Resizer
 
         private void btnFolderSelect_Click(object sender, EventArgs e)
         {
-            var result = folderBrowserDialog1.ShowDialog();
-
-            if (result == DialogResult.OK)
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
                 txtFolder.Text = folderBrowserDialog1.SelectedPath;
                 txtFolder_TextChanged(sender, e);
@@ -67,7 +65,7 @@ namespace Simple_Image_Resizer
             {
                 var file = files.FirstOrDefault();
 
-                using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
+                using (Image originalImage = Image.FromFile(file.FullName))
                 {
                     var rate = cmbRate.Text.ToDouble() / 100;
 
@@ -96,7 +94,6 @@ namespace Simple_Image_Resizer
         {
             try
             {
-
                 startTimeTicks = DateTime.Now.Ticks;
 
                 totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
@@ -141,7 +138,7 @@ namespace Simple_Image_Resizer
                         if (state.ShouldExitCurrentIteration)
                             return;
 
-                        using (Image originalImage = System.Drawing.Image.FromFile(file.FullName))
+                        using (Image originalImage = Image.FromFile(file.FullName))
                         {
                             var rate = args.Rate.ToDouble() / 100;
                             int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
@@ -212,10 +209,5 @@ namespace Simple_Image_Resizer
             string aboutText = "Copyright © 2011 João Carlos Pena, Arlindo Pereira.\n\nThis program is free software: you can redistribute it and/or modify\nit under the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nThis program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this program.  If not, see <http://www.gnu.org/licenses/>.";
             MessageBox.Show(aboutText, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
-
-
-
-
     }
 }
