@@ -18,10 +18,7 @@ namespace Simple_Image_Resizer
             InitializeComponent();
         }
 
-        int totalCount = 0;
-        int processedCount = 0;
         long startTimeTicks = 0;
-
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -40,7 +37,6 @@ namespace Simple_Image_Resizer
             cmbRate_TextChanged(sender, e);
         }
 
-
         private void btnFolderSelect_Click(object sender, EventArgs e)
         {
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -56,11 +52,11 @@ namespace Simple_Image_Resizer
             var files = dir.GetFiles(cmbInputFormat.Text);
 
             //Update file count
-            totalCount = files.Count();
-            lblFileCount.Text = totalCount.ToString();
+            progressBar.Maximum = files.Count();
+            lblFileCount.Text = progressBar.Maximum.ToString();
 
             //Update rate label 
-            if (totalCount > 0)
+            if (progressBar.Maximum > 0)
             {
                 var file = files.FirstOrDefault();
 
@@ -86,33 +82,29 @@ namespace Simple_Image_Resizer
             }
         }
 
-
-
-
         private void btnStart_Click(object sender, EventArgs e)
         {
             try
             {
                 startTimeTicks = DateTime.Now.Ticks;
 
-                totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
-                if (totalCount == 0)
+                progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
+                if (progressBar.Maximum == 0)
                 {
                     MessageBox.Show("The selected directory is empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     btnStart.Enabled = true;
                     return;
                 }
 
-                processedCount = 0;
-                updateProgressBar();
+                progressBar.Value = 0;
 
                 var args = new WorkerArguments();
                 args.FileTypes = cmbInputFormat.Text;
                 args.Path = txtFolder.Text;
                 args.Rate = Int32.Parse(cmbRate.Text);
 
-                lblFileCount.Text = totalCount.ToString();
-
+                lblFileCount.Text = progressBar.Maximum.ToString();
+                
                 btnStart.Enabled = false;
                 backgroundWorker1.RunWorkerAsync(args);
             }
@@ -136,9 +128,7 @@ namespace Simple_Image_Resizer
             {
                 Parallel.ForEach<FileInfo>(files, (file, state) =>
                     {
-
-                        if (state.ShouldExitCurrentIteration)
-                            return;
+                        if (state.ShouldExitCurrentIteration) return;
 
                         using (Image originalImage = Image.FromFile(file.FullName))
                         {
@@ -159,7 +149,6 @@ namespace Simple_Image_Resizer
                                     newImage.Save(targetDir.FullName + "\\" + file.Name, ImageFormat.Jpeg);
                                 }
                             }
-
                             backgroundWorker1.ReportProgress(0);
                         }
                     });
@@ -174,28 +163,15 @@ namespace Simple_Image_Resizer
 
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            processedCount++;
-
-            lblCount.Text = processedCount.ToString() + " / " + totalCount.ToString();
-
-            updateProgressBar();
-
+            progressBar.PerformStep();
+            lblCount.Text = progressBar.Value + " / " + progressBar.Maximum.ToString();
         }
-
-
-        private void updateProgressBar()
-        {
-            progressBar.Value = (int)Math.Floor(((double)processedCount / totalCount) * 100d);
-        }
-
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error == null)
             {
-
                 var ts = new TimeSpan(DateTime.Now.Ticks - startTimeTicks);
-
 
                 MessageBox.Show("Finished!\nProcessing time: " + ts.TotalSeconds, "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
