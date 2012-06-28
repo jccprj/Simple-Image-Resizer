@@ -98,7 +98,11 @@ namespace Simple_Image_Resizer
 
                 totalCount = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
                 if (totalCount == 0)
-                    throw new Exception("The selected directory is empty.");
+                {
+                    MessageBox.Show("The selected directory is empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    btnStart.Enabled = true;
+                    return;
+                }
 
                 processedCount = 0;
                 updateProgressBar();
@@ -118,7 +122,6 @@ namespace Simple_Image_Resizer
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnStart.Enabled = true;
             }
-
         }
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
