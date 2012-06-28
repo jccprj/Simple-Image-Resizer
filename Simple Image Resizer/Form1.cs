@@ -39,16 +39,20 @@ namespace Simple_Image_Resizer
 
         private void btnFolderSelect_Click(object sender, EventArgs e)
         {
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
-                txtFolder.Text = folderBrowserDialog1.SelectedPath;
-                txtFolder_TextChanged(sender, e);
+                txtFolder.Text = folderBrowserDialog.SelectedPath;
             }
         }
 
         private void cmbRate_TextChanged(object sender, EventArgs e)
         {
-            var dir = Directory.CreateDirectory(txtFolder.Text);
+            if(!Directory.Exists(txtFolder.Text))
+            {
+                return;
+            }
+            
+            var dir = new DirectoryInfo(txtFolder.Text);
             var files = dir.GetFiles(cmbInputFormat.Text);
 
             //Update file count
@@ -84,6 +88,12 @@ namespace Simple_Image_Resizer
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            if (!Directory.Exists(txtFolder.Text))
+            {
+                MessageBox.Show("The selected directory does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             try
             {
                 startTimeTicks = DateTime.Now.Ticks;
