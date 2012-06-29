@@ -20,23 +20,13 @@ namespace Simple_Image_Resizer
 
         long startTimeTicks = 0;
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            cmbInputFormat.SelectedIndex = 0;
-            cmbOutputFormat.SelectedIndex = 0;
-            cmbRate.SelectedIndex = 6;
-        }
-
         private void txtFolder_DoubleClick(object sender, EventArgs e)
         {
-            btnFolderSelect_Click(sender, e);
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                txtFolder.Text = folderBrowserDialog.SelectedPath;
+            }
         }
-
-        private void txtFolder_TextChanged(object sender, EventArgs e)
-        {
-            cmbRate_TextChanged(sender, e);
-        }
-
         private void btnFolderSelect_Click(object sender, EventArgs e)
         {
             if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
@@ -45,26 +35,34 @@ namespace Simple_Image_Resizer
             }
         }
 
+        private void txtFolder_TextChanged(object sender, EventArgs e)
+        {
+            RecalculateFileCount();
+            RecalculateRateExample();
+        }
         private void cmbRate_TextChanged(object sender, EventArgs e)
         {
-            if(!Directory.Exists(txtFolder.Text))
+            RecalculateRateExample();
+        }
+
+        private void RecalculateFileCount()
+        {
+            if (Directory.Exists(txtFolder.Text))
             {
-                return;
+                progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Length;
+                lblFileCount.Text = progressBar.Maximum.ToString();
             }
-            
-            var dir = new DirectoryInfo(txtFolder.Text);
-            var files = dir.GetFiles(cmbInputFormat.Text);
-
-            //Update file count
-            progressBar.Maximum = files.Count();
-            lblFileCount.Text = progressBar.Maximum.ToString();
-
-            //Update rate label 
-            if (progressBar.Maximum > 0)
+            else
             {
-                var file = files.FirstOrDefault();
-
-                using (Image originalImage = Image.FromFile(file.FullName))
+                progressBar.Maximum = 0;
+                lblFileCount.Text = "0";
+            }
+        }
+        private void RecalculateRateExample()
+        {
+            if (Directory.Exists(txtFolder.Text) && progressBar.Maximum > 0)
+            {
+                using (Image originalImage = Image.FromFile(Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text)[0]))
                 {
                     var rate = double.Parse(cmbRate.Text) / 100d;
 
@@ -73,16 +71,15 @@ namespace Simple_Image_Resizer
 
                     StringBuilder sb = new StringBuilder();
                     sb.Append("e.g.: First picture will be resized from ");
-                    sb.Append(originalImage.Width);
-                    sb.Append("x");
-                    sb.Append(originalImage.Height);
-                    sb.Append(" to ");
-                    sb.Append(newWidth);
-                    sb.Append("x");
-                    sb.Append(newHeight);
+                    sb.Append(originalImage.Width).Append("x").Append(originalImage.Height);
+                    sb.Append(" to ").Append(newWidth).Append("x").Append(newHeight);
 
                     lblRateExample.Text = sb.ToString();
                 }
+            }
+            else
+            {
+                lblRateExample.Text = string.Empty;
             }
         }
 
@@ -129,8 +126,7 @@ namespace Simple_Image_Resizer
         {
             var args = e.Argument as WorkerArguments;
 
-            var dir = Directory.CreateDirectory(args.Path);
-            var files = dir.GetFiles(args.FileTypes);
+            var files = new DirectoryInfo(args.Path).GetFiles(args.FileTypes);
 
             var targetDir = Directory.CreateDirectory(args.Path + "\\Resized");
 

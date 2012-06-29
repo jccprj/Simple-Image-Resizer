@@ -67,6 +67,7 @@
             this.cmbOutputFormat.Name = "cmbOutputFormat";
             this.cmbOutputFormat.Size = new System.Drawing.Size(171, 21);
             this.cmbOutputFormat.TabIndex = 8;
+            this.cmbOutputFormat.Text = "JPEG";
             // 
             // label1
             // 
@@ -86,6 +87,7 @@
             this.cmbInputFormat.Name = "cmbInputFormat";
             this.cmbInputFormat.Size = new System.Drawing.Size(171, 21);
             this.cmbInputFormat.TabIndex = 6;
+            this.cmbInputFormat.Text = "*.JPG";
             // 
             // label2
             // 
@@ -193,9 +195,8 @@
             this.lblRateExample.AutoSize = true;
             this.lblRateExample.Location = new System.Drawing.Point(164, 220);
             this.lblRateExample.Name = "lblRateExample";
-            this.lblRateExample.Size = new System.Drawing.Size(13, 13);
+            this.lblRateExample.Size = new System.Drawing.Size(0, 13);
             this.lblRateExample.TabIndex = 12;
-            this.lblRateExample.Text = "()";
             // 
             // lblFileCount
             // 
@@ -277,7 +278,6 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "Form1";
             this.Text = "Simple Image Resizer";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.ResumeLayout(false);
