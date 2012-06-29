@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,7 +18,7 @@ namespace Simple_Image_Resizer
             InitializeComponent();
         }
 
-        long startTimeTicks = 0;
+        Stopwatch stopWatch = new Stopwatch();
 
         private void txtFolder_DoubleClick(object sender, EventArgs e)
         {
@@ -93,13 +93,12 @@ namespace Simple_Image_Resizer
 
             try
             {
-                startTimeTicks = DateTime.Now.Ticks;
+                stopWatch.Restart();
 
-                progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Count();
+                progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Length;
                 if (progressBar.Maximum == 0)
                 {
                     MessageBox.Show("The selected directory is empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    btnStart.Enabled = true;
                     return;
                 }
 
@@ -111,9 +110,9 @@ namespace Simple_Image_Resizer
                 args.Rate = Int32.Parse(cmbRate.Text);
 
                 lblFileCount.Text = progressBar.Maximum.ToString();
-                
+
                 btnStart.Enabled = false;
-                backgroundWorker1.RunWorkerAsync(args);
+                backgroundWorker.RunWorkerAsync(args);
             }
             catch (Exception ex)
             {
@@ -122,7 +121,7 @@ namespace Simple_Image_Resizer
             }
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             var args = e.Argument as WorkerArguments;
 
@@ -155,31 +154,29 @@ namespace Simple_Image_Resizer
                                     newImage.Save(targetDir.FullName + "\\" + file.Name, ImageFormat.Jpeg);
                                 }
                             }
-                            backgroundWorker1.ReportProgress(0);
+                            backgroundWorker.ReportProgress(0);
                         }
                     });
 
             }
             catch (AggregateException ex)
             {
-                throw ex.InnerExceptions.First();
+                throw ex.InnerExceptions[0];
             }
 
         }
 
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar.PerformStep();
-            lblCount.Text = progressBar.Value + " / " + progressBar.Maximum.ToString();
+            lblCount.Text = progressBar.Value + " / " + progressBar.Maximum;
         }
-
-        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error == null)
             {
-                var ts = new TimeSpan(DateTime.Now.Ticks - startTimeTicks);
-
-                MessageBox.Show("Finished!\nProcessing time: " + ts.TotalSeconds, "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                stopWatch.Stop();
+                MessageBox.Show("Finished!\nProcessing time: " + stopWatch.Elapsed.TotalSeconds, "OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
