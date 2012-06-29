@@ -60,14 +60,16 @@
             // 
             // cmbOutputFormat
             // 
+            this.cmbOutputFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbOutputFormat.FormattingEnabled = true;
             this.cmbOutputFormat.Items.AddRange(new object[] {
-            "JPEG"});
+            "*.JPG",
+            "*.BMP"});
             this.cmbOutputFormat.Location = new System.Drawing.Point(89, 190);
             this.cmbOutputFormat.Name = "cmbOutputFormat";
             this.cmbOutputFormat.Size = new System.Drawing.Size(171, 21);
             this.cmbOutputFormat.TabIndex = 8;
-            this.cmbOutputFormat.Text = "JPEG";
+            this.cmbOutputFormat.SelectedIndexChanged += new System.EventHandler(this.cmbOutputFormat_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -82,12 +84,15 @@
             // 
             this.cmbInputFormat.FormattingEnabled = true;
             this.cmbInputFormat.Items.AddRange(new object[] {
-            "*.JPG"});
+            "*.JPG",
+            "*.BMP"});
             this.cmbInputFormat.Location = new System.Drawing.Point(89, 163);
             this.cmbInputFormat.Name = "cmbInputFormat";
             this.cmbInputFormat.Size = new System.Drawing.Size(171, 21);
             this.cmbInputFormat.TabIndex = 6;
             this.cmbInputFormat.Text = "*.JPG";
+            this.cmbInputFormat.SelectedIndexChanged += new System.EventHandler(this.cmbInputFormat_SelectedIndexChanged);
+            this.cmbInputFormat.TextUpdate += new System.EventHandler(this.cmbInputFormat_TextUpdate);
             // 
             // label2
             // 
@@ -119,6 +124,7 @@
             // 
             // btnStart
             // 
+            this.btnStart.Enabled = false;
             this.btnStart.Location = new System.Drawing.Point(392, 265);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(106, 24);
@@ -175,7 +181,7 @@
             // progressBar
             // 
             this.progressBar.Location = new System.Drawing.Point(12, 302);
-            this.progressBar.Maximum = 1;
+            this.progressBar.Maximum = 0;
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(486, 23);
             this.progressBar.Step = 1;

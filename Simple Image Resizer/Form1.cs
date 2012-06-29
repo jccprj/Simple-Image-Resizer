@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
@@ -16,9 +15,19 @@ namespace Simple_Image_Resizer
         public Form1()
         {
             InitializeComponent();
+            cmbOutputFormat.SelectedIndex = 0;
         }
 
+        ImageFormat saveFormat = ImageFormat.Jpeg;
         Stopwatch stopWatch = new Stopwatch();
+        string folder, inFileType, outFileType;
+        double rate;
+
+        private void cmbOutputFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbOutputFormat.SelectedIndex == 0) saveFormat = ImageFormat.Jpeg;
+            if (cmbOutputFormat.SelectedIndex == 1) saveFormat = ImageFormat.Bmp;
+        }
 
         private void txtFolder_DoubleClick(object sender, EventArgs e)
         {
@@ -40,6 +49,16 @@ namespace Simple_Image_Resizer
             RecalculateFileCount();
             RecalculateRateExample();
         }
+        private void cmbInputFormat_TextUpdate(object sender, EventArgs e)
+        {
+            RecalculateFileCount();
+            RecalculateRateExample();
+        }
+        private void cmbInputFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RecalculateFileCount();
+            RecalculateRateExample();
+        }
         private void cmbRate_TextChanged(object sender, EventArgs e)
         {
             RecalculateRateExample();
@@ -51,11 +70,13 @@ namespace Simple_Image_Resizer
             {
                 progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Length;
                 lblFileCount.Text = progressBar.Maximum.ToString();
+                btnStart.Enabled = (progressBar.Maximum != 0);
             }
             else
             {
                 progressBar.Maximum = 0;
                 lblFileCount.Text = "0";
+                btnStart.Enabled = false;
             }
         }
         private void RecalculateRateExample()
@@ -66,8 +87,8 @@ namespace Simple_Image_Resizer
                 {
                     var rate = double.Parse(cmbRate.Text) / 100d;
 
-                    int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
-                    int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
+                    int newWidth = (int)(originalImage.Width * rate);
+                    int newHeight = (int)(originalImage.Height * rate);
 
                     StringBuilder sb = new StringBuilder();
                     sb.Append("e.g.: First picture will be resized from ");
@@ -85,34 +106,18 @@ namespace Simple_Image_Resizer
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if (!Directory.Exists(txtFolder.Text))
-            {
-                MessageBox.Show("The selected directory does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
             try
             {
+                progressBar.Value = 0;
                 stopWatch.Restart();
 
-                progressBar.Maximum = Directory.GetFiles(txtFolder.Text, cmbInputFormat.Text).Length;
-                if (progressBar.Maximum == 0)
-                {
-                    MessageBox.Show("The selected directory is empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                progressBar.Value = 0;
-
-                var args = new WorkerArguments();
-                args.FileTypes = cmbInputFormat.Text;
-                args.Path = txtFolder.Text;
-                args.Rate = Int32.Parse(cmbRate.Text);
-
-                lblFileCount.Text = progressBar.Maximum.ToString();
+                this.folder = txtFolder.Text;
+                this.inFileType = cmbInputFormat.Text;
+                this.outFileType = cmbOutputFormat.Text;
+                this.rate = double.Parse(cmbRate.Text) / 100d;
 
                 btnStart.Enabled = false;
-                backgroundWorker.RunWorkerAsync(args);
+                backgroundWorker.RunWorkerAsync();
             }
             catch (Exception ex)
             {
@@ -120,52 +125,33 @@ namespace Simple_Image_Resizer
                 btnStart.Enabled = true;
             }
         }
-
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var args = e.Argument as WorkerArguments;
-
-            var files = new DirectoryInfo(args.Path).GetFiles(args.FileTypes);
-
-            var targetDir = Directory.CreateDirectory(args.Path + "\\Resized");
+            var files = new DirectoryInfo(folder).GetFiles(this.inFileType);
+            var targetDir = Directory.CreateDirectory(this.folder + "\\Resized");
 
             try
             {
-                Parallel.ForEach<FileInfo>(files, (file, state) =>
+                Parallel.ForEach<FileInfo>(files, (file) =>
+                {
+                    using (Image originalImage = Image.FromFile(file.FullName))
                     {
-                        if (state.ShouldExitCurrentIteration) return;
+                        int newWidth = (int)(originalImage.Width * this.rate);
+                        int newHeight = (int)(originalImage.Height * this.rate);
 
-                        using (Image originalImage = Image.FromFile(file.FullName))
-                        {
-                            var rate = args.Rate / 100d;
-                            int newWidth = (int)Math.Ceiling(originalImage.Width * rate);
-                            int newHeight = (int)Math.Ceiling(originalImage.Height * rate);
-
-                            using (Bitmap newImage = new Bitmap(newWidth, newHeight))
-                            {
-                                using (Graphics graphic = Graphics.FromImage((Image)newImage))
-                                {
-                                    graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                                    graphic.SmoothingMode = SmoothingMode.HighQuality;
-                                    graphic.CompositingQuality = CompositingQuality.HighQuality;
-
-                                    graphic.DrawImage(originalImage, 0, 0, newWidth, newHeight);
-
-                                    newImage.Save(targetDir.FullName + "\\" + file.Name, ImageFormat.Jpeg);
-                                }
-                            }
-                            backgroundWorker.ReportProgress(0);
-                        }
-                    });
-
+                        Bitmap newBitmap = new Bitmap(originalImage, newWidth, newHeight);
+                        string newFilename = Path.GetFileNameWithoutExtension(file.FullName) + Path.GetExtension(outFileType);
+                        newBitmap.Save(targetDir.FullName + "\\" + newFilename, saveFormat);
+                        newBitmap.Dispose();
+                    }
+                    backgroundWorker.ReportProgress(0);
+                });
             }
             catch (AggregateException ex)
             {
                 throw ex.InnerExceptions[0];
             }
-
         }
-
         private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             progressBar.PerformStep();
